@@ -230,3 +230,22 @@ def create_unlearning_dataloader(unlearn_file, dataset, batch_size=32):
     unlearn_loader = DataLoader(unlearn_dataset, batch_size=batch_size, shuffle=False)
     
     return unlearn_indices, unlearn_loader
+
+
+def create_retain_dataloader(unlearn_file, dataset, batch_size=32, shuffle=False):
+    """
+    Tworzy loader na zbiór retain = dataset \ unlearn_indices.
+    unlearn_file: JSON z listą obiektów zawierających pole "index".
+    """
+    with open(unlearn_file, "r") as f:
+        unlearn_samples = json.load(f)
+
+    unlearn_indices = {entry["index"] for entry in unlearn_samples}  # set dla szybkości
+    all_indices = range(len(dataset))
+
+    retain_indices = [i for i in all_indices if i not in unlearn_indices]
+
+    retain_dataset = Subset(dataset, retain_indices)
+    retain_loader = DataLoader(retain_dataset, batch_size=batch_size, shuffle=shuffle)
+
+    return retain_indices, retain_loader
